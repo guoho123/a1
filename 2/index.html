@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>登录</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="card">
+        <h3>登录</h3>
+        <input type="text" class="input" id="sid" placeholder="学号">
+        <button class="btn" onclick="go()">登录</button>
+        <div class="msg" id="msg"></div>
+    </div>
+
+<script>
+function go() {
+    let v = document.getElementById('sid').value.trim();
+    if (!v) return;
+    let fd = new FormData();
+    fd.append('sid', v);
+    fetch('php/login.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(d => {
+            if (d.code === 1) {
+                localStorage.setItem('user', JSON.stringify({ sid: d.sid, name: d.name }));
+                location.href = 'upload.html';
+            } else {
+                document.getElementById('msg').innerText = d.msg;
+            }
+        })
+}
+</script>
+</body>
+</html>

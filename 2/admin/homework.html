@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>文件查看</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="card" style="max-width:700px">
+        <h3>文件查看</h3>
+    </div>
+    <div class="table-box">
+        <table>
+            <tr><th>学号</th><th>姓名</th><th>日期</th><th>文件</th><th>操作</th></tr>
+            <tbody id="tb"></tbody>
+        </table>
+    </div>
+
+<script>
+fetch('../php/api.php?type=homework')
+    .then(r => r.json())
+    .then(d => {
+        let html = '';
+        d.forEach(x => {
+            html += `<tr>
+                <td>${x.sid}</td>
+                <td>${x.name}</td>
+                <td>${x.date}</td>
+                <td><a href="../uploads/${x.file}" target="_blank">下载</a></td>
+                <td><button class="btn btn-sm" onclick="del('${x.sid}','${x.date}')">删除</button></td>
+            </tr>`
+        });
+        document.getElementById('tb').innerHTML = html;
+    })
+
+function del(sid, date) {
+    if (!confirm('确定删除这条文件？')) return;
+    let fd = new FormData();
+    fd.append('sid', sid);
+    fd.append('date', date);
+    fetch('../php/admin.php?act=del_homework', { method: 'POST', body: fd })
+        .then(() => location.reload())
+}
+</script>
+</body>
+</html>

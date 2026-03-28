@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>管理</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="card" style="max-width:700px">
+    <h3>批量添加</h3>
+    <input type="text" class="input" id="search" placeholder="快捷查询：学号/姓名" oninput="render()">
+    <br>
+    <textarea class="input" id="list" rows="8" placeholder="格式：学号+空格+姓名（别整错了🌚）"></textarea>
+    <br>
+    <button class="btn" onclick="addAll()">批量导入</button>
+</div>
+
+<div class="card" style="max-width:700px">
+    <h3>列表</h3>
+    <div class="table-box">
+        <table>
+            <tr><th>学号</th><th>姓名</th><th>操作</th></tr>
+            <tbody id="tb"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+let students = [];
+
+function load(){
+    fetch('../php/api.php?type=students')
+    .then(r=>r.json())
+    .then(d=>{
+        students = d;
+        render();
+    })
+}
+
+function render(){
+    let kw = document.getElementById('search').value.toLowerCase().trim();
+    let html = '';
+    students.forEach(s=>{
+        if(kw && !s.sid.includes(kw) && !s.name.toLowerCase().includes(kw)) return;
+        html+=`<tr>
+            <td>${s.sid}</td>
+            <td>${s.name}</td>
+            <td><button class="btn btn-sm" onclick="del('${s.sid}')">删除</button></td>
+        </tr>`;
+    })
+    document.getElementById('tb').innerHTML = html;
+}
+
+function addAll(){
+    let text = document.getElementById('list').value;
+    let lines = text.split(/\n/);
+    let arr = [];
+    lines.forEach(line=>{
+        line = line.trim();
+        if(!line) return;
+        let [sid,name] = line.split(/\s+/);
+        if(sid && name) arr.push({sid,name});
+    });
+    let fd = new FormData();
+    fd.append('list', JSON.stringify(arr));
+    fetch('../php/admin.php?act=import_students',{method:'POST',body:fd})
+    .then(r=>r.json())
+    .then(d=>{
+        alert('导入完成');
+        load();
+    })
+}
+
+function del(sid){
+    if(!confirm('确定删除？')) return;
+    let fd = new FormData();
+    fd.append('sid', sid);
+    fetch('../php/admin.php?act=del_student',{method:'POST',body:fd})
+    .then(()=>load());
+}
+
+load();
+</script>
+</body>
+</html>

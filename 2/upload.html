@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>上传文件</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="card">
+  <h3 id="info"></h3>
+  <input type="file" class="input" id="f" accept=".docx">
+  <button class="btn" onclick="up()">上传</button>
+</div>
+
+<script>
+function getCookie(name) {
+  let arr = document.cookie.match(new RegExp("(^| )" + name + "=([^;]*)(;|$)"));
+  if (arr != null) return unescape(arr[2]);
+  return "";
+}
+
+function forceLogout() {
+  localStorage.removeItem("user");
+  document.cookie = "hw_sid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  alert("账号登录记录已被删除，请重新登录");
+  location.href = "index.html";
+}
+
+function checkStudentValid() {
+  let user = JSON.parse(localStorage.getItem("user") || "null");
+  if (!user) {
+    location.href = "index.html";
+    return;
+  }
+
+  fetch("//192.168.1.3/2/php/api.php?type=check_student&sid=" + user.sid + "&t=" + Date.now())
+  .then(res => {
+    if (!res.ok) throw new Error("网络异常");
+    return res.json();
+  })
+  .then(data => {
+    if (!data.exists) {
+      forceLogout();
+      return;
+    }
+
+    return fetch("//192.168.1.3/2/php/api.php?type=login_log&t=" + Date.now())
+    .then(res => res.json())
+    .then(logData => {
+      const today = new Date().toISOString().split("T")[0];
+      const isLogged = logData.some(log => log.sid === user.sid && log.date === today);
+      if (!isLogged) {
+        forceLogout();
+      }
+    });
+  })
+  .catch(() => {
+    console.log("校验请求异常");
+    forceLogout();
+  });
+}
+
+let user = JSON.parse(localStorage.getItem("user") || "null");
+if (!user) location.href = "index.html";
+
+checkStudentValid();
+
+document.getElementById("info").innerText = user.name + " (" + user.sid + ")";
+
+function up() {
+  let file = document.getElementById("f").files[0];
+  if (!file) return;
+  let fd = new FormData();
+  fd.append("sid", user.sid);
+  fd.append("name", user.name);
+  fd.append("file", file);
+  fetch("php/upload.php", { method: "POST", body: fd })
+  .then(r => r.json())
+  .then(d => {
+    alert(d.msg);
+    if (d.code === 1) {
+      alert("上传成功");
+    }
+  });
+}
+</script>
+</body>
+</html>

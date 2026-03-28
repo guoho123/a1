@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>登录记录</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="card" style="max-width:700px">
+        <h3>登录记录</h3>
+    </div>
+    <div class="table-box">
+        <table>
+            <tr><th>学号</th><th>姓名</th><th>日期</th><th>时间</th><th>操作</th></tr>
+            <tbody id="tb"></tbody>
+        </table>
+    </div>
+
+<script>
+function load() {
+    fetch('../php/api.php?type=login_log')
+        .then(r => r.json())
+        .then(d => {
+            let html = '';
+            d.forEach(x => {
+                html += `<tr><td>${x.sid}</td><td>${x.name}</td><td>${x.date}</td><td>${x.time}</td><td><button class="btn btn-sm" onclick="del('${x.sid}','${x.date}')">删除</button></td></tr>`;
+            });
+            document.getElementById('tb').innerHTML = html;
+        })
+}
+load();
+
+function del(sid, date) {
+    let fd = new FormData();
+    fd.append('sid', sid);
+    fd.append('date', date);
+    fetch('../php/admin.php?act=del_login', { method: 'POST', body: fd })
+        .then(() => load());
+}
+</script>
+</body>
+</html>

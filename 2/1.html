@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="心悦工作室">
+    <meta name="description" content="心悦的个人介绍页">
+    <meta name="keywords" content="心悦,个人介绍,前端开发">
+    <title>心悦个人介绍页</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", "PingFang SC", sans-serif;
+        }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #05071a 0%, #0a0e2c 50%, #040614 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+        }
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzA5MDgyNSIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjEiIGZpbGw9IiMxNTIxMzkiIG9wYWNpdHk9IjAuNCIvPjwvc3ZnPg==');
+            background-size: 80px 80px;
+            opacity: 0.2;
+            animation: bgMove 80s linear infinite;
+        }
+        @keyframes bgMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 800px 800px; }
+        }
+        .loader-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #05071a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 1s ease, visibility 1s ease;
+        }
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #0f1a3d;
+            border-top: 4px solid #2563eb;
+            border-radius: 50%;
+            animation: spin 1.2s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* 修复：给hidden类加实际样式，停止动画+彻底隐藏 */
+        .loader-container.hidden {
+            animation: none;
+            pointer-events: none;
+        }
+        .user-card {
+            width: 100%;
+            max-width: 420px;
+            padding: 35px 30px;
+            border-radius: 24px;
+            background: linear-gradient(145deg, #0d1336 0%, #080c24 100%);
+            box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.6),
+                        -5px -5px 15px rgba(30, 41, 59, 0.15),
+                        inset 2px 2px 5px rgba(30, 41, 59, 0.1),
+                        inset -2px -2px 5px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            opacity: 0;
+            transform: translateY(40px) scale(0.9);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .user-card::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, transparent 70%);
+            animation: containerGlow 12s ease-in-out infinite;
+            pointer-events: none;
+        }
+        .user-card::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 24px;
+            background: linear-gradient(120deg, rgba(255, 255, 255, 0.05) 0%, transparent 50%, rgba(255, 255, 255, 0.03) 100%);
+            pointer-events: none;
+        }
+        @keyframes containerGlow {
+            0%, 100% { transform: scale(0.9) rotate(0deg); opacity: 0.2; }
+            50% { transform: scale(1.1) rotate(180deg); opacity: 0.4; }
+        }
+        .user-card.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        .user-card:hover {
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 15px 15px 30px rgba(0, 0, 0, 0.7),
+                        -8px -8px 20px rgba(30, 41, 59, 0.2),
+                        inset 3px 3px 6px rgba(30, 41, 59, 0.15),
+                        inset -3px -3px 6px rgba(0, 0, 0, 0.6);
+            transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .user-title {
+            font-size: clamp(2.2rem, 9vw, 3.2rem);
+            font-weight: 700;
+            background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 50%, #2563eb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            opacity: 0;
+            transform: translateX(-30px);
+            transition: opacity 0.6s ease 0.2s, transform 0.6s ease 0.2s;
+            position: relative;
+            z-index: 1;
+        }
+        .user-title.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .user-desc {
+            font-size: clamp(1rem, 4.5vw, 1.25rem);
+            color: #94a3b8;
+            line-height: 1.8;
+            margin-bottom: 15px;
+            opacity: 0;
+            transform: translateX(30px);
+            transition: opacity 0.6s ease 0.4s, transform 0.6s ease 0.4s;
+            position: relative;
+            z-index: 1;
+        }
+        .user-desc.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .user-btn {
+            padding: 12px 32px;
+            border: none;
+            border-radius: 28px;
+            background: linear-gradient(145deg, #1e3a8a 0%, #1e40af 100%);
+            box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.4),
+                        -3px -3px 6px rgba(30, 41, 59, 0.1),
+                        inset 2px 2px 5px rgba(148, 163, 184, 0.1),
+                        inset -2px -2px 5px rgba(0, 0, 0, 0.5);
+            color: #e2e8f0;
+            font-size: 1.15rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            opacity: 0;
+            transform: scale(0.8);
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+        }
+        .user-btn::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+            transition: left 0.6s ease;
+        }
+        .user-btn::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 28px;
+            background: linear-gradient(120deg, rgba(255, 255, 255, 0.08) 0%, transparent 50%, rgba(255, 255, 255, 0.05) 100%);
+            pointer-events: none;
+        }
+        .user-btn.visible {
+            opacity: 1;
+            transform: scale(1);
+            animation: btnBreathe 4s ease-in-out infinite;
+        }
+        @keyframes btnBreathe {
+            0%, 100% { transform: scale(1); box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.4), -3px -3px 6px rgba(30, 41, 59, 0.1), inset 2px 2px 5px rgba(148, 163, 184, 0.1), inset -2px -2px 5px rgba(0, 0, 0, 0.5); }
+            50% { transform: scale(1.05); box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.5), -4px -4px 8px rgba(30, 41, 59, 0.15), inset 2px 2px 5px rgba(148, 163, 184, 0.15), inset -2px -2px 5px rgba(0, 0, 0, 0.6); }
+        }
+        .user-btn:hover {
+            box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.5),
+                        -4px -4px 8px rgba(30, 41, 59, 0.15),
+                        inset 3px 3px 6px rgba(148, 163, 184, 0.15),
+                        inset -3px -3px 6px rgba(0, 0, 0, 0.6);
+            transform: scale(1.04);
+        }
+        .user-btn:hover::before {
+            left: 100%;
+        }
+        .user-btn:active {
+            transform: scale(0.96);
+            box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.6),
+                        inset -4px -4px 8px rgba(30, 41, 59, 0.1);
+            animation: shake 0.2s ease;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0) scale(0.96); }
+            25% { transform: translateX(-2px) scale(0.96); }
+            75% { transform: translateX(2px) scale(0.96); }
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 7, 26, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: linear-gradient(145deg, #0d1336 0%, #080c24 100%);
+            padding: 30px 40px;
+            border-radius: 20px;
+            box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.6),
+                        -5px -5px 15px rgba(30, 41, 59, 0.15);
+            color: #e2e8f0;
+            font-size: 1.2rem;
+            font-weight: 500;
+            transform: scale(0.8);
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .modal-content::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 20px;
+            background: linear-gradient(120deg, rgba(255, 255, 255, 0.06) 0%, transparent 50%, rgba(255, 255, 255, 0.04) 100%);
+            pointer-events: none;
+        }
+        .modal-content::after {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, transparent 70%);
+            animation: modalGlow 10s ease-in-out infinite;
+            pointer-events: none;
+        }
+        @keyframes modalGlow {
+            0%, 100% { transform: scale(0.9) rotate(0deg); opacity: 0.2; }
+            50% { transform: scale(1.1) rotate(180deg); opacity: 0.3; }
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+        @media (max-width: 768px) {
+            .user-card {
+                padding: 30px 25px;
+                max-width: 380px;
+            }
+            .user-title {
+                font-size: clamp(2rem, 10vw, 2.8rem);
+            }
+            .user-desc {
+                font-size: clamp(0.95rem, 5vw, 1.15rem);
+            }
+            .user-btn {
+                padding: 11px 28px;
+                font-size: 1.1rem;
+            }
+            .modal-content {
+                padding: 25px 30px;
+                font-size: 1.1rem;
+                max-width: 90%;
+            }
+        }
+        @media (max-width: 480px) {
+            .user-card {
+                padding: 25px 20px;
+                max-width: 340px;
+            }
+            .user-title {
+                font-size: clamp(1.8rem, 12vw, 2.5rem);
+            }
+            .user-desc {
+                font-size: clamp(0.9rem, 5.5vw, 1.1rem);
+                line-height: 1.7;
+            }
+            .user-btn {
+                padding: 10px 24px;
+                font-size: 1.05rem;
+            }
+            .modal-content {
+                padding: 20px 25px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loader-container" id="loader">
+        <div class="loader"></div>
+    </div>
+    <div class="user-card" id="card">
+        <h1 class="user-title" id="title"></h1>
+        <p class="user-desc" id="desc"></p>
+        <p class="user-desc" id="desc2"></p>
+        <button class="user-btn" id="btn"></button>
+    </div>
+    <div class="modal-overlay" id="modal">
+        <div class="modal-content">我不想联系你</div>
+    </div>
+    <script>
+        function getCurrentTimestamp() {
+            return Date.now() - new Date().getFullYear() * 10000000000;
+        }
+        function generateRandomNum(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+        function calculateHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const charCode = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + charCode;
+                hash = hash & hash;
+            }
+            return hash >>> 0;
+        }
+        function validateData(data) {
+            return typeof data === 'string' && data.trim().length > 0;
+        }
+        function setLocalStorage(key, value) {
+            try {
+                localStorage.setItem(key, JSON.stringify(value));
+            } catch (e) {
+                console.warn('LocalStorage is not available:', e);
+            }
+        }
+        function getLocalStorage(key) {
+            try {
+                const value = localStorage.getItem(key);
+                return value ? JSON.parse(value) : null;
+            } catch (e) {
+                console.warn('LocalStorage is not available:', e);
+                return null;
+            }
+        }
+        function getElementByIdSafe(id) {
+            const elem = document.getElementById(id);
+            if (!elem) throw new Error(`Element with id ${id} not found`);
+            return elem;
+        }
+        function addClass(elem, className) {
+            if (!elem || elem.classList.contains(className)) return;
+            elem.classList.add(className);
+        }
+        function removeClass(elem, className) {
+            if (!elem || !elem.classList.contains(className)) return;
+            elem.classList.remove(className);
+        }
+        const ts = getCurrentTimestamp();
+        const r1 = generateRandomNum(1000, 9999);
+        const r2 = generateRandomNum(1000, 9999);
+        const r3 = generateRandomNum(1000, 9999);
+        const r4 = generateRandomNum(1000, 9999);
+        const r5 = generateRandomNum(1000, 9999);
+        const r6 = generateRandomNum(1000, 9999);
+        const r7 = generateRandomNum(1000, 9999);
+        const r8 = generateRandomNum(1000, 9999);
+        const r9 = generateRandomNum(1000, 9999);
+        const r10 = generateRandomNum(1000, 9999);
+        const m1 = (ts * r1) % r2;
+        const m2 = (ts * r3) % r4;
+        const m3 = (ts * r5) % r6;
+        const m4 = (ts * r7) % r8;
+        const m5 = (ts * r9) % r10;
+        
+        const c_yu = "心";const h_yu = calculateHash(c_yu) + m1 - r1;
+        const c_mao = "悦";const h_mao = calculateHash(c_mao) + m2 - r2;
+        const c_zhe = "这";const h_zhe = calculateHash(c_zhe) + m3 - r3;
+        const c_li = "里";const h_li = calculateHash(c_li) + m4 - r4;
+        const c_shi = "是";const h_shi = calculateHash(c_shi) + m5 - r5;
+        const c_de = "的";const h_de = calculateHash(c_de) + m1 - r6;
+        const c_ge = "个";const h_ge = calculateHash(c_ge) + m2 - r7;
+        const c_jie = "介";const h_jie = calculateHash(c_jie) + m3 - r8;
+        const c_shao = "绍";const h_shao = calculateHash(c_shao) + m4 - r9;
+        const c_ye1 = "页";const h_ye1 = calculateHash(c_ye1) + m5 - r10;
+        const c_lian = "联";const h_lian = calculateHash(c_lian) + m1 - r2;
+        const c_xi = "系";const h_xi = calculateHash(c_xi) + m2 - r3;
+        const c_wo = "我";const h_wo = calculateHash(c_wo) + m3 - r4;
+        
+        const c_qd = "前";const h_qd = calculateHash(c_qd) + m1 - r1;
+        const c_du = "端";const h_du = calculateHash(c_du) + m2 - r2;
+        const c_kf = "开";const h_kf = calculateHash(c_kf) + m3 - r3;
+        const c_fa = "发";const h_fa = calculateHash(c_fa) + m4 - r4;
+        const c_zh = "专";const h_zh = calculateHash(c_zh) + m5 - r5;
+        const c_zhu = "注";const h_zhu = calculateHash(c_zhu) + m1 - r6;
+        const c_you = "优";const h_you = calculateHash(c_you) + m2 - r7;
+        const c_zhi = "质";const h_zhi = calculateHash(c_zhi) + m3 - r8;
+        const c_wz = "网";const h_wz = calculateHash(c_wz) + m4 - r9;
+        const c_ye2 = "页";const h_ye2 = calculateHash(c_ye2) + m5 - r10;
+        
+        const dataMap = {};
+        [c_yu,c_mao,c_zhe,c_li,c_shi,c_de,c_ge,c_jie,c_shao,c_ye1,c_lian,c_xi,c_wo,c_qd,c_du,c_kf,c_fa,c_zh,c_zhu,c_you,c_zhi,c_wz,c_ye2].forEach(char => {
+            dataMap[calculateHash(char)] = char;
+        });
+        
+        function retrieveChar(code, offset, rand) {
+            const baseHash = code - offset + rand;
+            return dataMap[baseHash] || "";
+        }
+        
+        const loaderElem = getElementByIdSafe("loader");
+        const cardElem = getElementByIdSafe("card");
+        const titleElem = getElementByIdSafe("title");
+        const descElem = getElementByIdSafe("desc");
+        const descElem2 = getElementByIdSafe("desc2");
+        const btnElem = getElementByIdSafe("btn");
+        const modalElem = getElementByIdSafe("modal");
+        
+        const titleText = retrieveChar(h_yu, m1, r1) + retrieveChar(h_mao, m2, r2);
+        const descText = retrieveChar(h_zhe, m3, r3) + retrieveChar(h_li, m4, r4) + retrieveChar(h_shi, m5, r5) + retrieveChar(h_de, m1, r6) + retrieveChar(h_yu, m1, r1) + retrieveChar(h_mao, m2, r2) + retrieveChar(h_de, m1, r6) + retrieveChar(h_ge, m2, r7) + retrieveChar(h_jie, m3, r8) + retrieveChar(h_shao, m4, r9) + retrieveChar(h_de, m1, r6) + retrieveChar(h_ye1, m5, r10);
+        const descText2 = retrieveChar(h_qd, m1, r1) + retrieveChar(h_du, m2, r2) + retrieveChar(h_kf, m3, r3) + retrieveChar(h_fa, m4, r4) + " | " + retrieveChar(h_zh, m5, r5) + retrieveChar(h_zhu, m1, r6) + retrieveChar(h_you, m2, r7) + retrieveChar(h_zhi, m3, r8) + retrieveChar(h_wz, m4, r9) + retrieveChar(h_ye2, m5, r10);
+        const btnText = retrieveChar(h_lian, m1, r2) + retrieveChar(h_xi, m2, r3) + retrieveChar(h_wo, m3, r4);
+        
+        if (validateData(titleText)) titleElem.innerText = titleText;
+        if (validateData(descText)) descElem.innerText = descText;
+        if (validateData(descText2)) descElem2.innerText = descText2;
+        if (validateData(btnText)) btnElem.innerText = btnText;
+
+        window.addEventListener("load", function() {
+            setTimeout(function() {
+                loaderElem.style.opacity = "0";
+                loaderElem.style.visibility = "hidden";
+                
+                setTimeout(() => loaderElem.parentNode.removeChild(loaderElem), 1000);
+                
+                setTimeout(function() {
+                    addClass(cardElem, "visible");
+                    setTimeout(function() {
+                        addClass(titleElem, "visible");
+                        setTimeout(function() {
+                            addClass(descElem, "visible");
+                            addClass(descElem2, "visible");
+                            setTimeout(function() {
+                                addClass(btnElem, "visible");
+                            }, 200);
+                        }, 200);
+                    }, 200);
+                }, 100);
+            }, 1500);
+        });
+        
+        btnElem.addEventListener("click", function() {
+            addClass(modalElem, "active");
+            const clickTs = getCurrentTimestamp();
+            const clickR = generateRandomNum(100, 999);
+            const clickHash = calculateHash(btnText + clickTs);
+            setLocalStorage("last_click_" + clickR, {ts: clickTs, hash: clickHash});
+        });
+        
+        modalElem.addEventListener("click", function(e) {
+            if (e.target === modalElem) removeClass(modalElem, "active");
+        });
+        const pageLoadData = {
+            loadTs: ts,
+            titleLength: titleText.length,
+            descLength: descText.length,
+            descLength2: descText2.length
+        };
+        setLocalStorage("page_load_info", pageLoadData);
+        
+        let lastX = 0, lastY = 0;
+        document.addEventListener("mousemove", function(e) {
+            const dx = e.clientX - lastX;
+            const dy = e.clientY - lastY;
+            lastX = e.clientX;
+            lastY = e.clientY;
+            cardElem.style.transform = `translate(${dx * 0.03}px, ${dy * 0.03}px) scale(1)`;
+        });
+        document.addEventListener("touchmove", function(e) {
+            const touch = e.touches[0];
+            const dx = touch.clientX - lastX;
+            const dy = touch.clientY - lastY;
+            lastX = touch.clientX;
+            lastY = touch.clientY;
+            cardElem.style.transform = `translate(${dx * 0.02}px, ${dy * 0.02}px) scale(1)`;
+        });
+    </script>
+    
+    <script src="http://192.168.1.3/2/js/check.js"></script>
+<script>checkHomeworkAuto();</script>
+</body>
+</html>
